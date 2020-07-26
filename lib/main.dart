@@ -89,7 +89,7 @@ class _MyHomePageState extends State<MyHomePage> {
     speak(_elements_all[i]);
 
     flutterTts.setCompletionHandler(() async {
-      if (i < _elements_all.length-1) {
+      if (i < _elements_all.length - 1) {
         i++;
         speak(_elements_all[i]);
       }
@@ -102,31 +102,8 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {
       _elements.add(text);
     });
-    
+
     await flutterTts.speak(text.text);
-  }
-
-  Future readText() async {
-    FirebaseVisionImage ourImage =
-        FirebaseVisionImage.fromFilePath(pickedImage.path);
-    TextRecognizer recognizeText = FirebaseVision.instance.textRecognizer();
-    VisionText readText = await recognizeText.processImage(ourImage);
-    for (TextBlock block in readText.blocks) {
-      for (TextLine line in block.lines) {
-        for (TextElement word in line.elements) {
-          print(word.text);
-        }
-      }
-    }
-  }
-
-  Future speakText() async {
-    FirebaseVisionImage ourImage =
-        FirebaseVisionImage.fromFilePath(pickedImage.path);
-    TextRecognizer recognizeText = FirebaseVision.instance.textRecognizer();
-    VisionText readText = await recognizeText.processImage(ourImage);
-    FlutterTts flutterTts = FlutterTts();
-    await flutterTts.speak(readText.text);
   }
 
   @override
@@ -179,10 +156,19 @@ class _MyHomePageState extends State<MyHomePage> {
                       ],
                     ),
                     SizedBox(height: 10.0),
-                    RaisedButton(
-                      child: Text('Speak'),
-                      onPressed: _initializeVision,
-                    ),
+                    Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.play_circle_outline),
+                            onPressed: _initializeVision,
+                          ),
+                          IconButton(
+                              icon: Icon(Icons.pause_circle_outline),
+                              onPressed: () {
+                                flutterTts.stop();
+                              }),
+                        ])
                   ]),
             ))
       ],
