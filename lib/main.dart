@@ -29,6 +29,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Size _imageSize;
 
   Future pickImage() async {
+    flutterTts.stop();
     var tempStore = await ImagePicker().getImage(source: ImageSource.gallery);
 
     if (tempStore != null) {
@@ -39,6 +40,7 @@ class _MyHomePageState extends State<MyHomePage> {
       pickedImage = tempStore;
       isImageLoaded = true;
       _elements.clear();
+      _elements_all.clear();
     });
   }
 
@@ -65,6 +67,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   List<TextElement> _elements = [];
+  List<TextElement> _elements_all = [];
 
   void _initializeVision() async {
     FirebaseVisionImage ourImage =
@@ -72,17 +75,35 @@ class _MyHomePageState extends State<MyHomePage> {
     TextRecognizer recognizeText = FirebaseVision.instance.textRecognizer();
     VisionText readText = await recognizeText.processImage(ourImage);
 
-    FlutterTts flutterTts = FlutterTts();
-
     for (TextBlock block in readText.blocks) {
       for (TextLine line in block.lines) {
         // Retrieve the elements and store them in a list
         for (TextElement element in line.elements) {
-          _elements.add(element);
-          await flutterTts.speak(element.text);
+          _elements_all.add(element);
         }
       }
     }
+
+    int i = 0;
+
+    speak(_elements_all[i]);
+
+    flutterTts.setCompletionHandler(() async {
+      if (i < _elements_all.length-1) {
+        i++;
+        speak(_elements_all[i]);
+      }
+    });
+  }
+
+  FlutterTts flutterTts = FlutterTts();
+
+  speak(text) async {
+    setState(() {
+      _elements.add(text);
+    });
+    
+    await flutterTts.speak(text.text);
   }
 
   Future readText() async {
