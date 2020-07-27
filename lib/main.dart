@@ -29,6 +29,8 @@ class _MyHomePageState extends State<MyHomePage> {
   Size _imageSize;
 
   Future pickImage() async {
+    i = 0;
+    paused = false;
     flutterTts.stop();
     var tempStore = await ImagePicker().getImage(source: ImageSource.gallery);
 
@@ -68,23 +70,27 @@ class _MyHomePageState extends State<MyHomePage> {
 
   List<TextElement> _elements = [];
   List<TextElement> _elements_all = [];
+  int i;
+  bool paused = false;
 
   void _initializeVision() async {
-    FirebaseVisionImage ourImage =
-        FirebaseVisionImage.fromFilePath(pickedImage.path);
-    TextRecognizer recognizeText = FirebaseVision.instance.textRecognizer();
-    VisionText readText = await recognizeText.processImage(ourImage);
+    if(!paused){
+      FirebaseVisionImage ourImage =
+          FirebaseVisionImage.fromFilePath(pickedImage.path);
+      TextRecognizer recognizeText = FirebaseVision.instance.textRecognizer();
+      VisionText readText = await recognizeText.processImage(ourImage);
 
-    for (TextBlock block in readText.blocks) {
-      for (TextLine line in block.lines) {
-        // Retrieve the elements and store them in a list
-        for (TextElement element in line.elements) {
-          _elements_all.add(element);
+      for (TextBlock block in readText.blocks) {
+        for (TextLine line in block.lines) {
+          // Retrieve the elements and store them in a list
+          for (TextElement element in line.elements) {
+            _elements_all.add(element);
+          }
         }
       }
-    }
 
-    int i = 0;
+      i = 0;
+    }
 
     speak(_elements_all[i]);
 
@@ -93,7 +99,16 @@ class _MyHomePageState extends State<MyHomePage> {
         i++;
         speak(_elements_all[i]);
       }
+      else{
+        i=0;
+        paused=false;
+      }
     });
+  }
+
+  void _pauseVision() async{
+    flutterTts.stop();
+    paused = true;
   }
 
   FlutterTts flutterTts = FlutterTts();
@@ -102,7 +117,6 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {
       _elements.add(text);
     });
-
     await flutterTts.speak(text.text);
   }
 
@@ -165,9 +179,8 @@ class _MyHomePageState extends State<MyHomePage> {
                           ),
                           IconButton(
                               icon: Icon(Icons.pause_circle_outline),
-                              onPressed: () {
-                                flutterTts.stop();
-                              }),
+                              onPressed: _pauseVision
+                              ),
                         ])
                   ]),
             ))
